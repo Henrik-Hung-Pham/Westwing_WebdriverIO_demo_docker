@@ -20,12 +20,22 @@ npm install
 ```
 
 
-# Running the Sample Scenarios
+# Running the Scenarios
 
 ```
 npm run test
 ```
 
+# Running the Scenarios in docker
+Make sure docker is up and running
+
+Building the docker image: ```docker build -t <docker_image_name> .```
+
+Example: ```docker build -t westwingnow .```
+
+Run test with docker image: ```docker run -it <docker_image_name>```
+
+Example: ```docker run -it westwingnow```
 
 # License
 
