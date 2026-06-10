@@ -1,0 +1,56 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  npm-audit:
+    name: NPM Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run npm audit
+        run: npm audit --production
+
+  dependency-check:
+    name: Check for vulnerable dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Verify no vulnerabilities found
+        run: |
+          VULNS=$(npm audit --json | jq '.metadata.vulnerabilities.total')
+          if [ "$VULNS" -gt 0 ]; then
+            echo "❌ Found $VULNS vulnerabilities"
+            npm audit
+            exit 1
+          else
+            echo "✅ No vulnerabilities found"
+          fi
