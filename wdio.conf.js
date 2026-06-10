@@ -152,7 +152,7 @@ exports.config = {
       "goog:chromeOptions": {
         // to run chrome headless the following flags are required
         // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
-        args: ['--no-sandbox','--headless', '--disable-gpu', '--disable-dev-shm-usage'],
+        args: ['--headless', '--disable-gpu', '--disable-dev-shm-usage'],
       },
       //
       // Parameter to ignore some or all default flags
