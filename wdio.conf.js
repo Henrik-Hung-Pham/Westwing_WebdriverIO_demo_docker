@@ -1,27 +1,10 @@
 const fs = require("fs");
-const argv = require("yargs").argv;
-const wdioParallel = require("wdio-cucumber-parallel-execution");
-const { removeSync } = require("fs-extra");
+const path = require("path");
 
-// The below module is used for cucumber html report generation
-const reporter = require("cucumber-html-reporter");
-const currentTime = new Date().toJSON().replace(/:/g, "-");
 const sourceSpecDirectory = `tests/features/featureFiles`;
-const jsonTmpDirectory = `tests/reports/json/tmp/`;
+const reportsDirectory = `tests/reports`;
 
 let featureFilePath = `${sourceSpecDirectory}/*.feature`;
-
-// If parallel execution is set to true, then create the Split the feature files
-// And store then in a tmp spec directory (created inside `the source spec directory)
-if (argv.parallel === "true") {
-  tmpSpecDirectory = `${sourceSpecDirectory}/tmp`;
-  wdioParallel.performSetup({
-    sourceSpecDirectory: sourceSpecDirectory,
-    tmpSpecDirectory: tmpSpecDirectory,
-    cleanTmpSpecDirectory: true,
-  });
-  featureFilePath = `${tmpSpecDirectory}/*.feature`;
-}
 
 exports.config = {
   //
@@ -115,7 +98,7 @@ exports.config = {
   // Services take over a specific job you don't want to take care of. They enhance
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
-  services: ["selenium-standalone"],
+  services: ["chromedriver"],
 
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
@@ -135,13 +118,15 @@ exports.config = {
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter.html
   reporters: [
-    // 'spec'
-
+    "spec",
     [
-      "cucumberjs-json",
+      "html-nice",
       {
-        jsonFolder: jsonTmpDirectory,
-        language: "en",
+        outputDir: path.join(reportsDirectory, "html"),
+        filename: "report.html",
+        reportTitle: "WebdriverIO Test Report",
+        collapseTestGroups: false,
+        useOnlyStdOut: false,
       },
     ],
   ],
@@ -223,10 +208,8 @@ exports.config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    */
   onPrepare: () => {
-    // Remove the `tmp/` folder that holds the json report files
-    removeSync(jsonTmpDirectory);
-    if (!fs.existsSync(jsonTmpDirectory)) {
-      fs.mkdirSync(jsonTmpDirectory);
+    if (!fs.existsSync(reportsDirectory)) {
+      fs.mkdirSync(reportsDirectory, { recursive: true });
     }
   },
   /**
@@ -334,28 +317,7 @@ exports.config = {
    * @param {<Object>} results object containing test results
    */
   onComplete: () => {
-    try {
-      let consolidatedJsonArray = wdioParallel.getConsolidatedData({
-        parallelExecutionReportDirectory: jsonTmpDirectory,
-      });
-
-      let jsonFile = `${jsonTmpDirectory}report.json`;
-      fs.writeFileSync(jsonFile, JSON.stringify(consolidatedJsonArray));
-
-      var options = {
-        theme: "bootstrap",
-        jsonFile: jsonFile,
-        output: `tests/reports/html/report-${currentTime}.html`,
-        reportSuiteAsScenarios: true,
-        scenarioTimestamp: true,
-        launchReport: true,
-        ignoreBadJsonFile: true,
-      };
-
-      reporter.generate(options);
-    } catch (err) {
-      console.error("Failed to generate report:", err.message);
-    }
+    console.log("Test execution completed. Report generated in tests/reports/html/");
   },
   /**
    * Gets executed when a refresh happens.
