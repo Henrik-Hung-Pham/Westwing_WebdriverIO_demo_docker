@@ -354,7 +354,7 @@ exports.config = {
 
       reporter.generate(options);
     } catch (err) {
-      console.log("err", err);
+      console.error("Failed to generate report:", err.message);
     }
   },
   /**
